@@ -131,8 +131,17 @@ class sigmaa_estimator(object):
       self.r_free_flags = self.r_free_flags.array(
         data = ~self.r_free_flags.data())
 
-    self.free_norm_obs = self.normalized_obs.select( self.r_free_flags.data() )
-    self.free_norm_calc= self.normalized_calc.select( self.r_free_flags.data() )
+    # mod by YunyunGao. read pdb-redo int r_free_flags       
+    import numpy as np
+    if self.r_free_flags.data().as_numpy_array().dtype == np.dtype('int32'):
+      r_free_int = r_free_flags.data().as_numpy_array()
+      r_free_true = r_free_int == r_free_int.max()
+      self.free_norm_obs = self.normalized_obs.select(flex.bool(r_free_true))
+      self.free_norm_calc = self.normalized_calc.select(flex.bool(r_free_true))
+    else:
+      self.free_norm_obs = self.normalized_obs.select( self.r_free_flags.data() )
+      self.free_norm_calc= self.normalized_calc.select( self.r_free_flags.data() )
+    # mod end
 
     if self.free_norm_obs.data().size() <= 0:
       raise RuntimeError("No free reflections.")
